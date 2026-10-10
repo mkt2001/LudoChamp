@@ -1,0 +1,578 @@
+
+<!DOCTYPE html>
+<html lang="hi">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#170d31">
+<title>Ludo Champ — Ludo & Kaudi</title>
+<style>
+:root{
+  --bg:#140c29;--panel:#24163f;--panel2:#322052;
+  --gold:#ffd56a;--text:#fff;--muted:#d0c4e6;
+  --red:#ff536b;--blue:#48a5ff;--green:#36d69b;--yellow:#ffca46;
+}
+*{box-sizing:border-box}
+body{
+ margin:0;min-height:100vh;color:var(--text);
+ font-family:system-ui,-apple-system,Arial,sans-serif;
+ background:radial-gradient(ellipse at top,#38205c,var(--bg) 70%);
+}
+button,select{font:inherit}
+button{cursor:pointer;touch-action:manipulation}
+button:focus-visible,select:focus-visible{outline:3px solid white;outline-offset:3px}
+header{text-align:center;padding:22px 12px 12px}
+.logo{
+ width:90px;height:90px;margin:auto;display:grid;place-items:center;
+ border-radius:25px;background:linear-gradient(145deg,#ffdf79,#ff8a37);
+ box-shadow:0 9px 32px #0006, inset 0 2px 4px #fff8;
+ border:2px solid #ffe7a4;
+}
+.logo svg{width:80px;height:80px}
+h1{
+ margin:12px 0 4px;font-size:clamp(27px,7vw,38px);
+ font-weight:1000;letter-spacing:1px;
+ color:var(--gold);text-shadow:0 3px 0 #733f17;
+}
+.subtitle{margin:5px;color:var(--muted);font-size:13px}
+main{width:min(760px,100%);margin:auto;padding:10px 13px 35px}
+.panel{
+ background:linear-gradient(145deg,var(--panel2),var(--panel));
+ border:1px solid #ffffff18;border-radius:23px;
+ padding:17px;margin:13px 0;box-shadow:0 9px 25px #0002;
+}
+h2{font-size:19px;margin:0 0 13px}
+h3{font-size:15px;margin:14px 0 8px}
+.row{display:flex;align-items:center;justify-content:center;gap:8px;flex-wrap:wrap}
+.controls{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+label{font-size:12px;color:var(--muted);display:block}
+select{
+ display:block;margin-top:5px;width:100%;padding:11px;
+ color:white;background:#39265a;border:1px solid #ffffff28;border-radius:12px;
+}
+.btn{
+ padding:11px 14px;border:0;border-radius:13px;font-weight:800;
+ background:var(--gold);color:#2b1943;box-shadow:0 3px 0 #9d6b27;
+}
+.btn:active{transform:translateY(2px);box-shadow:none}
+.btn.secondary{background:#493365;color:white;box-shadow:none;border:1px solid #ffffff20}
+.btn.selected{outline:2px solid white}
+.btn:disabled{opacity:.42;cursor:not-allowed}
+.full{width:100%;margin-top:12px}
+.modes{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.mode{
+ border:1px solid #ffffff22;background:#ffffff09;border-radius:17px;
+ color:white;padding:15px 8px;text-align:center;
+}
+.mode .emoji{font-size:31px;display:block;margin-bottom:5px}
+.mode.active{border:2px solid var(--gold);background:#ffd56a15}
+.mode strong{display:block}
+.mode small{color:var(--muted)}
+.status{
+ text-align:center;background:#ffffff09;padding:12px;border-radius:14px;
+ line-height:1.55;min-height:60px;margin:10px 0;
+}
+.badge{display:inline-block;color:var(--gold);font-size:11px;letter-spacing:.8px}
+.turnbar{display:flex;justify-content:center;gap:7px;flex-wrap:wrap}
+.player-chip{
+ border-radius:20px;padding:7px 11px;background:#ffffff0d;
+ border:1px solid #ffffff18;font-size:12px;
+}
+.player-chip.active{border-color:var(--gold);background:#ffd56a20}
+.dot{display:inline-block;width:9px;height:9px;border-radius:50%;margin-right:5px}
+.board-wrap{display:flex;justify-content:center;padding:10px 0}
+.board{
+ position:relative;width:min(90vw,410px);aspect-ratio:1;border-radius:50%;
+ border:5px solid #f6d17b;background:
+ radial-gradient(circle,#38265a 0 31%,#211438 32% 56%,#46305e 57% 60%,#201437 61%);
+ box-shadow:0 0 0 5px #ffffff0a,0 15px 35px #0006;
+ overflow:hidden;
+}
+.board::before{
+ content:"";position:absolute;inset:15%;border-radius:50%;
+ border:1px dashed #ffffff22;pointer-events:none;
+}
+.center-logo{
+ position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);
+ width:100px;text-align:center;pointer-events:none;
+}
+.center-logo .crown{font-size:33px}
+.center-logo b{display:block;color:var(--gold);font-size:14px;letter-spacing:1px}
+.space{
+ position:absolute;left:50%;top:50%;width:25px;height:25px;
+ margin:-12.5px;border-radius:8px;background:#ffffff13;
+ border:1px solid #ffffff1b;display:flex;align-items:center;
+ justify-content:center;font-size:10px;
+}
+.space.safe{background:#f4d27b40;border-color:#ffe49a}
+.space.start{border:2px solid white}
+.space.home{background:#ffd56a24}
+.pieces{position:absolute;inset:0;pointer-events:none}
+.token{
+ position:absolute;width:25px;height:25px;border-radius:50%;
+ display:grid;place-items:center;border:2px solid #fff;
+ font-size:11px;font-weight:900;color:#21112e;
+ box-shadow:0 3px 7px #0008;pointer-events:auto;
+ padding:0;transform:translate(-50%,-50%);
+}
+.token:disabled{opacity:1;cursor:default}
+.token.movable{animation:pulse 1s infinite;cursor:pointer;outline:2px solid white}
+@keyframes pulse{50%{filter:brightness(1.5);box-shadow:0 0 13px white}}
+@keyframes pop{0%{transform:scale(.7)}70%{transform:scale(1.1)}100%{transform:scale(1)}}
+.pop{animation:pop .25s ease}
+.dice{
+ width:73px;height:73px;border-radius:17px;display:grid;place-items:center;
+ font-size:48px;background:linear-gradient(145deg,#fff,#ded4f7);
+ color:#392054;box-shadow:0 5px 0 #a49ab8,0 10px 22px #0004;
+ margin:8px auto;
+}
+.dice.rolling{animation:spin .55s ease}
+@keyframes spin{0%{transform:rotate(0) scale(.8)}50%{transform:rotate(180deg) scale(1.12)}100%{transform:rotate(360deg) scale(1)}}
+.action{text-align:center}
+#choiceBox{display:flex;gap:8px;justify-content:center;flex-wrap:wrap;margin-top:10px}
+.player-list{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.score{
+ padding:11px;border-radius:12px;background:#ffffff0b;
+ border:1px solid #ffffff12;font-size:13px;
+}
+.score b{display:block;margin-bottom:5px}
+.mini-token{display:inline-block;width:10px;height:10px;border-radius:50%;margin-right:5px}
+.k-shell{
+ font-size:35px;background:#ffffff09;border:1px solid #ffffff18;
+ border-radius:13px;padding:8px 12px;min-width:51px;text-align:center;
+}
+.shells{display:flex;gap:8px;justify-content:center;margin:12px 0}
+.skin-btn{padding:9px 10px;font-size:12px}
+.note{font-size:12px;color:var(--muted);line-height:1.65}
+hr{border:0;border-top:1px solid #ffffff16;margin:15px 0}
+footer{text-align:center;color:var(--muted);font-size:11px;padding:18px}
+#toast{color:var(--gold);text-align:center;min-height:22px;font-size:13px}
+.hidden{display:none!important}
+@media(max-width:380px){
+ .panel{padding:13px}
+ .space{width:21px;height:21px;margin:-10.5px}
+ .token{width:22px;height:22px}
+ .center-logo{width:78px}
+ .center-logo .crown{font-size:27px}
+}
+</style>
+</head>
+<body>
+<header>
+ <div class="logo">
+  <svg viewBox="0 0 100 100" role="img" aria-label="Ludo Champ dice and crown">
+   <path d="M17 34 L10 13 L34 25 L50 5 L66 25 L90 13 L83 34 Z"
+    fill="#fff4ae" stroke="#9c521d" stroke-width="2.5" stroke-linejoin="round"/>
+   <rect x="13" y="32" width="74" height="10" rx="4" fill="#ffb52e" stroke="#9c521d" stroke-width="2"/>
+   <g transform="rotate(-9 50 65)">
+    <rect x="23" y="42" width="54" height="48" rx="12" fill="#fff" stroke="#a65320" stroke-width="3"/>
+    <circle cx="36" cy="54" r="5" fill="#ff536b"/>
+    <circle cx="64" cy="54" r="5" fill="#48a5ff"/>
+    <circle cx="36" cy="77" r="5" fill="#36d69b"/>
+    <circle cx="64" cy="77" r="5" fill="#ffca46"/>
+    <circle cx="50" cy="65" r="5" fill="#6332bd"/>
+   </g>
+  </svg>
+ </div>
+ <h1>LUDO CHAMP</h1>
+ <p class="subtitle">🎲 Ludo • 🐚 Kaudi • Play Like a Champion</p>
+</header>
+
+<main>
+<section class="panel">
+ <h2>🎮 Choose Your Game</h2>
+ <div class="modes">
+  <button id="ludoMode" class="mode active" onclick="chooseGame('ludo')">
+   <span class="emoji">🎲</span><strong>Ludo Champ</strong><small>Race to home</small>
+  </button>
+  <button id="kaudiMode" class="mode" onclick="chooseGame('kaudi')">
+   <span class="emoji">🐚</span><strong>Kaudi Champ</strong><small>Shell challenge</small>
+  </button>
+ </div>
+ <hr>
+ <div class="controls">
+  <label>Players
+   <select id="playerCount">
+    <option value="2">2 Players</option>
+    <option value="3">3 Players</option>
+    <option value="4" selected>4 Players</option>
+   </select>
+  </label>
+  <label>Goti Style
+   <select id="tokenStyle">
+    <option value="classic">Classic</option>
+    <option value="gem">💎 Gem</option>
+    <option value="gold">👑 Gold</option>
+    <option value="wood">🪵 Wood</option>
+   </select>
+  </label>
+ </div>
+ <button class="btn full" onclick="newGame()">✨ NEW GAME</button>
+</section>
+
+<section class="panel">
+ <div class="row" style="justify-content:space-between">
+  <h2 id="gameHeading">🏆 Ludo Race</h2>
+  <span class="badge">LOCAL MULTIPLAYER</span>
+ </div>
+ <div class="turnbar" id="turnbar"></div>
+ <div id="status" class="status" aria-live="polite">New Game दबाकर शुरू करें।</div>
+
+ <div id="ludoArea">
+  <div class="board-wrap">
+   <div class="board" id="board">
+    <div class="center-logo"><div class="crown">👑</div><b>CHAMP</b></div>
+    <div class="pieces" id="pieces"></div>
+   </div>
+  </div>
+  <div class="action">
+   <div id="dice" class="dice">🎲</div>
+   <button id="rollBtn" class="btn" onclick="rollLudo()">🎲 ROLL DICE</button>
+   <div id="choiceBox"></div>
+   <p class="note">अपनी चमकती हुई गोटी चुनें। छह आने पर नई गोटी निकलती है।</p>
+  </div>
+ </div>
+
+ <div id="kaudiArea" class="hidden">
+  <div class="shells" id="shells">
+   <span class="k-shell">🐚</span><span class="k-shell">🐚</span>
+   <span class="k-shell">🐚</span><span class="k-shell">🐚</span>
+  </div>
+  <div class="dice" id="kaudiResult">🐚</div>
+  <div class="action">
+   <button class="btn" id="kaudiBtn" onclick="rollKaudi()">🐚 THROW KAUDI</button>
+  </div>
+  <p class="note">Demo scoring: खुली कौड़ियों की संख्या अंक बनती है; सभी बंद होने पर 6 अंक। यह चार कौड़ियों का एक सरल उदाहरण है, प्रमाणित क्षेत्रीय नियम नहीं।</p>
+ </div>
+ <div id="toast"></div>
+</section>
+
+<section class="panel">
+ <h2>🏅 Players & Score</h2>
+ <div class="player-list" id="scores"></div>
+</section>
+
+<section class="panel">
+ <h2>🎨 Premium Themes — Free</h2>
+ <div class="row">
+  <button class="btn skin-btn selected" onclick="setTheme('royal',this)">👑 Royal Gold</button>
+  <button class="btn secondary skin-btn" onclick="setTheme('neon',this)">💜 Neon Night</button>
+  <button class="btn secondary skin-btn" onclick="setTheme('forest',this)">🌳 Forest</button>
+  <button class="btn secondary skin-btn" onclick="setTheme('ocean',this)">🌊 Ocean</button>
+  <button class="btn secondary skin-btn" onclick="setTheme('classic',this)">🎨 Classic</button>
+  <button class="btn secondary skin-btn" onclick="setTheme('sunset',this)">🌅 Sunset</button>
+ </div>
+ <h3>🔊 Sound Effects</h3>
+ <div class="row">
+  <button class="btn secondary" id="soundBtn" onclick="toggleSound()">🔊 Sound ON</button>
+ </div>
+ <p class="note">सभी themes, animations और sounds इस फाइल में ही हैं। कोई paid asset या external game library नहीं है।</p>
+</section>
+
+<section class="panel">
+ <h2>📖 How to Play</h2>
+ <p class="note" id="rules">
+ Ludo: छह आने पर गोटी निकालें, पासे के अनुसार चलें और सभी गोटियों को finish तक पहुँचाएँ। विरोधी की गोटी काटने पर वह वापस base जाती है।
+ </p>
+ <p class="note">कौड़ी: अपनी बारी में चार कौड़ियाँ उछालें। अंक जुड़ते जाएँगे। सबसे अधिक अंक वाला खिलाड़ी जीतता है। इस mode में स्थानीय नियमों के अनुसार scoring अलग हो सकती है।</p>
+</section>
+</main>
+<footer>© Ludo Champ • Free offline-style local game • No account required</footer>
+
+<script>
+"use strict";
+const COLORS=["#ff536b","#48a5ff","#36d69b","#ffca46"];
+const NAMES=["Red","Blue","Green","Yellow"];
+const EMOJIS=["🔴","🔵","🟢","🟡"];
+const SAFE=[0,8,13,21,26,34,39,47];
+const DICE=["⚀","⚁","⚂","⚃","⚄","⚅"];
+let mode="ludo",players=4,turn=0,diceValue=0;
+let pieces=[],finished=[],scores=[],winner=-1;
+let sound=true,audio=null,rolling=false,kaudiCount=0;
+let lastMessage="New Game दबाकर शुरू करें।";
+
+function el(id){return document.getElementById(id)}
+function notify(s){el("toast").textContent=s}
+function rand(n){return Math.floor(Math.random()*n)}
+function soundFx(freq=500,duration=.09){
+ if(!sound)return;
+ try{
+  audio=audio||new (window.AudioContext||window.webkitAudioContext)();
+  if(audio.state==="suspended")audio.resume();
+  const o=audio.createOscillator(),g=audio.createGain();
+  o.type="sine";o.frequency.value=freq;
+  g.gain.setValueAtTime(.08,audio.currentTime);
+  g.gain.exponentialRampToValueAtTime(.001,audio.currentTime+duration);
+  o.connect(g);g.connect(audio.destination);
+  o.start();o.stop(audio.currentTime+duration);
+ }catch(e){}
+}
+function toggleSound(){
+ sound=!sound;el("soundBtn").textContent=sound?"🔊 Sound ON":"🔇 Sound OFF";
+ if(sound)soundFx();
+}
+function setTheme(t,btn){
+ const themes={
+  royal:["#140c29","#24163f","#322052","#ffd56a"],
+  neon:["#100b28","#201344","#30215c","#e78bff"],
+  forest:["#0e261d","#163d2e","#20533d","#d5ef9c"],
+  ocean:["#09283c","#123e56","#1d5870","#83eaff"],
+  classic:["#17354c","#204e68","#2c6681","#ffe18b"],
+  sunset:["#351126","#57203c","#713151","#ffc27b"]
+ };
+ const c=themes[t]||themes.royal;
+ ["--bg","--panel","--panel2","--gold"].forEach((v,i)=>
+  document.documentElement.style.setProperty(v,c[i]));
+ document.querySelectorAll(".skin-btn").forEach(b=>{
+  b.classList.remove("selected");
+  if(b===btn){b.classList.add("selected");b.classList.remove("secondary")}
+  else{b.classList.add("secondary")}
+ });
+ soundFx(660);
+}
+function chooseGame(g){
+ mode=g;
+ el("ludoMode").classList.toggle("active",g==="ludo");
+ el("kaudiMode").classList.toggle("active",g==="kaudi");
+ el("ludoArea").classList.toggle("hidden",g!=="ludo");
+ el("kaudiArea").classList.toggle("hidden",g!=="kaudi");
+ el("gameHeading").textContent=g==="ludo"?"🏆 Ludo Race":"🐚 Kaudi Challenge";
+ el("rules").textContent=g==="ludo"
+  ?"Ludo: छह आने पर गोटी निकालें, पासे के अनुसार चलें और सभी गोटियों को finish तक पहुँचाएँ। सुरक्षित खाने पर गोटी नहीं कटती।"
+  :"Kaudi: चार कौड़ियाँ उछालें। खुली कौड़ियों की संख्या अंक है; सभी बंद होने पर 6 अंक। यह demo scoring है।";
+ newGame();
+}
+function newGame(){
+ players=Number(el("playerCount").value);
+ turn=0;diceValue=0;winner=-1;rolling=false;kaudiCount=0;
+ pieces=Array.from({length:players},()=>[-1,-1,-1,-1]);
+ finished=Array.from({length:players},()=>0);
+ scores=Array(players).fill(0);
+ el("rollBtn").disabled=false;el("kaudiBtn").disabled=false;
+ el("dice").textContent="🎲";el("kaudiResult").textContent="🐚";
+ el("choiceBox").innerHTML="";el("shells").innerHTML=
+  Array.from({length:4},()=>'<span class="k-shell">🐚</span>').join("");
+ lastMessage="नई बाजी शुरू! "+NAMES[turn]+" की बारी।";
+ notify("Good luck, Champion!");
+ render();
+ soundFx(440);
+}
+function activePlayers(){
+ return NAMES.slice(0,players).map((name,i)=>({name,i}));
+}
+function nextTurn(extra=false){
+ if(winner!==-1)return;
+ if(!extra)turn=(turn+1)%players;
+ diceValue=0;
+ render();
+}
+function trackPos(player,progress){
+ return (player*13+progress)%52;
+}
+function canMove(player,i,d){
+ const p=pieces[player][i];
+ if(p===58)return false;
+ if(p===-1)return d===6;
+ return p+d<=58;
+}
+function rollLudo(){
+ if(mode!=="ludo"||winner!==-1||rolling||diceValue!==0)return;
+ rolling=true;el("rollBtn").disabled=true;
+ const face=el("dice");
+ face.classList.remove("rolling");void face.offsetWidth;face.classList.add("rolling");
+ let ticks=0;
+ const anim=setInterval(()=>{
+  face.textContent=DICE[rand(6)];soundFx(240+rand(400),.04);
+  ticks++;
+  if(ticks>=8){
+   clearInterval(anim);rolling=false;
+   diceValue=1+rand(6);face.textContent=DICE[diceValue-1];
+   lastMessage=NAMES[turn]+" का पासा: "+diceValue;
+   soundFx(600,.15);
+   const choices=pieces[turn].map((p,i)=>canMove(turn,i,diceValue)?i:-1).filter(i=>i>=0);
+   if(!choices.length){
+    lastMessage+=" — कोई वैध चाल नहीं।";
+    el("rollBtn").disabled=false;
+    nextTurn(diceValue===6);
+   }else{
+    render();
+    if(choices.length===1)notify("गोटी "+(choices[0]+1)+" चुनें");
+   }
+  }
+ },65);
+}
+function movePiece(i){
+ if(winner!==-1||diceValue===0||!canMove(turn,i,diceValue))return;
+ const d=diceValue,old=pieces[turn][i];
+ pieces[turn][i]=old===-1?0:old+d;
+ const p=pieces[turn][i];
+ let captured=0;
+ if(p<52){
+  const pos=trackPos(turn,p);
+  if(!SAFE.includes(pos)){
+   for(let pl=0;pl<players;pl++){
+    if(pl===turn)continue;
+    for(let j=0;j<4;j++){
+     if(pieces[pl][j]>=0&&pieces[pl][j]<52&&trackPos(pl,pieces[pl][j])===pos){
+      pieces[pl][j]=-1;captured++;
+     }
+    }
+   }
+  }
+ }
+ if(p===58){
+  finished[turn]++;scores[turn]+=10;
+  soundFx(900,.2);
+ }else soundFx(540,.1);
+ if(captured){scores[turn]+=5;lastMessage+=" • "+captured+" गोटी काटी!";soundFx(760,.2)}
+ else lastMessage=NAMES[turn]+" ने गोटी "+(i+1)+" चलाई।";
+ if(finished[turn]===4){
+  winner=turn;lastMessage="🏆 "+NAMES[turn]+" CHAMPION बन गए!";
+  el("rollBtn").disabled=true;celebrate();
+ }
+ const extra=(d===6||captured>0||p===58);
+ diceValue=0;
+ el("choiceBox").innerHTML="";
+ if(winner===-1&&!extra)turn=(turn+1)%players;
+ render();
+}
+function celebrate(){
+ for(let i=0;i<14;i++){
+  const d=document.createElement("div");
+  d.textContent=["✨","🎉","⭐","🏆"][i%4];
+  Object.assign(d.style,{position:"fixed",left:(rand(90)+5)+"%",
+   top:(rand(75)+5)+"%",fontSize:"28px",zIndex:999,
+   pointerEvents:"none",animation:"pop .4s ease"});
+  document.body.appendChild(d);setTimeout(()=>d.remove(),1000);
+ }
+ soundFx(950,.25);
+}
+function rollKaudi(){
+ if(mode!=="kaudi"||winner!==-1||rolling)return;
+ rolling=true;el("kaudiBtn").disabled=true;
+ const shells=Array.from({length:4},()=>rand(2));
+ const box=el("shells");box.innerHTML="";
+ shells.forEach(open=>{
+  const s=document.createElement("span");s.className="k-shell pop";
+  s.textContent=open?"◡":"🐚";box.appendChild(s);
+ });
+ const open=shells.reduce((a,b)=>a+b,0),points=open===0?6:open;
+ scores[turn]+=points;kaudiCount++;
+ el("kaudiResult").textContent="+"+points;
+ lastMessage=NAMES[turn]+" को "+points+" अंक मिले।";
+ soundFx(350+points*90,.16);
+ if(kaudiCount>=5){
+  const max=Math.max(...scores);
+  const winners=scores.map((s,i)=>s===max?i:-1).filter(i=>i>=0);
+  if(winners.length===1){
+   winner=winners[0];lastMessage="🏆 "+NAMES[winner]+" Kaudi Champion!";
+  }else lastMessage="🤝 बराबरी! नया गेम शुरू करें।";
+  el("kaudiBtn").disabled=true;
+  if(winner!==-1)celebrate();
+ }else turn=(turn+1)%players;
+ rolling=false;
+ if(winner===-1)el("kaudiBtn").disabled=false;
+ render();
+}
+function tokenStyle(){
+ return el("tokenStyle").value;
+}
+function tokenContent(player,i){
+ const style=tokenStyle();
+ if(style==="gem")return "◆";
+ if(style==="gold")return "★";
+ if(style==="wood")return "●";
+ return String(i+1);
+}
+function renderTrack(){
+ const board=el("board"),layer=el("pieces");
+ board.querySelectorAll(".space").forEach(e=>e.remove());
+ layer.innerHTML="";
+ for(let i=0;i<52;i++){
+  const a=(i/52)*Math.PI*2-Math.PI/2;
+  const r=40;
+  const s=document.createElement("div");
+  s.className="space"+(SAFE.includes(i)?" safe":"")+
+   ([0,13,26,39].includes(i)?" start":"");
+  s.style.left=(50+Math.cos(a)*r)+"%";
+  s.style.top=(50+Math.sin(a)*r)+"%";
+  s.textContent=SAFE.includes(i)?"✦":"";
+  board.insertBefore(s,layer);
+ }
+ const grouped={};
+ for(let pl=0;pl<players;pl++){
+  for(let i=0;i<4;i++){
+   const p=pieces[pl][i];
+   if(p===58)continue;
+   let x,y;
+   if(p===-1){
+    const baseA=(pl/4)*Math.PI*2-Math.PI/2;
+    const offsets=[[-7,-7],[7,-7],[-7,7],[7,7]];
+    x=50+Math.cos(baseA)*27+offsets[i][0];
+    y=50+Math.sin(baseA)*27+offsets[i][1];
+   }else if(p>=52){
+    const a=(pl/4)*Math.PI*2-Math.PI/2;
+    const step=p-51;
+    x=50+Math.cos(a)*(30-step*3.5);
+    y=50+Math.sin(a)*(30-step*3.5);
+   }else{
+    const pos=trackPos(pl,p),a=(pos/52)*Math.PI*2-Math.PI/2;
+    x=50+Math.cos(a)*40;y=50+Math.sin(a)*40;
+   }
+   const key=Math.round(x)+":"+Math.round(y);
+   grouped[key]=(grouped[key]||0)+1;
+   const token=document.createElement("button");
+   token.className="token"+(pl===turn&&diceValue&&canMove(pl,i,diceValue)?" movable":"");
+   token.style.left=x+"%";token.style.top=y+"%";
+   token.style.background=COLORS[pl];token.textContent=tokenContent(pl,i);
+   token.title=NAMES[pl]+" token "+(i+1)+(p===-1?" (Base)":p===58?" (Finished)":"");
+   token.disabled=!(pl===turn&&diceValue&&canMove(pl,i,diceValue)&&winner===-1);
+   token.onclick=()=>movePiece(i);
+   if(pl===turn&&diceValue&&canMove(pl,i,diceValue))token.style.zIndex="30";
+   layer.appendChild(token);
+  }
+ }
+}
+function renderPlayers(){
+ const bar=el("turnbar"),scoresBox=el("scores");
+ bar.innerHTML="";scoresBox.innerHTML="";
+ for(let i=0;i<players;i++){
+  const chip=document.createElement("span");
+  chip.className="player-chip"+(i===turn&&winner===-1?" active":"");
+  chip.innerHTML='<span class="dot" style="background:'+COLORS[i]+'"></span>'+NAMES[i]+(i===turn&&winner===-1?" • Turn":"");
+  bar.appendChild(chip);
+  const s=document.createElement("div");s.className="score";
+  const inHome=mode==="ludo"?pieces[i].filter(p=>p===-1).length:0;
+  const done=mode==="ludo"?finished[i]:scores[i];
+  s.innerHTML='<b><span class="mini-token" style="background:'+COLORS[i]+'"></span>'+NAMES[i]+'</b>'+
+   (mode==="ludo"?'🏁 Finished: '+done+'/4<br>🏠 Base: '+inHome:'🐚 Points: '+scores[i]);
+  scoresBox.appendChild(s);
+ }
+}
+function render(){
+ renderPlayers();
+ el("status").textContent=lastMessage;
+ el("choiceBox").innerHTML="";
+ if(mode==="ludo"){
+  renderTrack();
+  el("rollBtn").disabled=winner!==-1||diceValue!==0||rolling;
+  if(diceValue>0&&winner===-1){
+   pieces[turn].forEach((p,i)=>{
+    if(canMove(turn,i,diceValue)){
+     const b=document.createElement("button");
+     b.className="btn secondary";
+     b.textContent="गोटी "+(i+1)+" चलाएँ";
+     b.onclick=()=>movePiece(i);el("choiceBox").appendChild(b);
+    }
+   });
+  }
+ }else{
+  el("kaudiBtn").disabled=winner!==-1||rolling;
+ }
+}
+el("playerCount").addEventListener("change",newGame);
+el("tokenStyle").addEventListener("change",render);
+chooseGame("ludo");
+</script>
+</body>
+</html>
